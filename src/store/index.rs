@@ -1,6 +1,6 @@
-use std::path::PathBuf;
-use crate::model::index::{IndexJson, IndexEntry};
 use crate::error::KtermError;
+use crate::model::index::{IndexEntry, IndexJson};
+use std::path::PathBuf;
 
 pub fn load(path: &PathBuf) -> Result<IndexJson, KtermError> {
     todo!()
@@ -14,7 +14,7 @@ pub fn create_entry(index: &mut IndexJson, id: &str, entry: IndexEntry) -> Resul
     todo!()
 }
 
-pub fn read_entry<'a>(index: &'a IndexJson, id: &'a str) -> Result<&'a IndexEntry, KtermError> {
+pub fn read_entry<'a>(index: &'a IndexJson, id: &str) -> Result<&'a IndexEntry, KtermError> {
     todo!()
 }
 
