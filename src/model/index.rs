@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
+use crate::error::KtermError;
 
 pub enum CardStatus {
     Draft,
