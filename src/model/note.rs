@@ -12,6 +12,7 @@ pub struct Zettel {
 impl Zettel {
     pub fn title(&self) -> String {
         // contentからH1を抽出して返す
+        todo!()
     }
 }
 
@@ -23,5 +24,6 @@ pub struct Scratch {
 impl Scratch {
     pub fn preview(&self) -> String {
         // H1があればH1、なければ本文冒頭を返す
+        todo!()
     }
 }
