@@ -14,7 +14,7 @@ pub fn create_entry(index: &mut IndexJson, id: &str, entry: IndexEntry) -> Resul
     todo!()
 }
 
-pub fn read_entry(index: &IndexJson, id: &str) -> Result<&IndexEntry, KtermError> {
+pub fn read_entry<'a>(index: &'a IndexJson, id: &'a str) -> Result<&'a IndexEntry, KtermError> {
     todo!()
 }
 
