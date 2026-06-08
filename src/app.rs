@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::model::config::Config;
 use crate::model::note::{Zettel, Scratch};
 use crate::model::index::IndexJson;
 
