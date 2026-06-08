@@ -1,12 +1,12 @@
 use crate::error::KtermError;
 use crate::model::index::{IndexEntry, IndexJson};
-use std::path::PathBuf;
+use std::path::Path;
 
-pub fn load(path: &PathBuf) -> Result<IndexJson, KtermError> {
+pub fn load(path: &Path) -> Result<IndexJson, KtermError> {
     todo!()
 }
 
-pub fn save(path: &PathBuf, index: &IndexJson) -> Result<(), KtermError> {
+pub fn save(path: &Path, index: &IndexJson) -> Result<(), KtermError> {
     todo!()
 }
 
