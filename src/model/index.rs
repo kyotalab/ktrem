@@ -1,6 +1,7 @@
+use crate::error::KtermError;
+use ::std::str::FromStr;
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
-use crate::error::KtermError;
 
 pub enum CardStatus {
     Draft,
@@ -14,8 +15,12 @@ impl CardStatus {
             CardStatus::Permanent => "permanent".to_string(),
         }
     }
+}
 
-    pub fn from_str(s: &str) -> Result<CardStatus, KtermError> {
+impl FromStr for CardStatus {
+    type Err = KtermError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "draft" => Ok(CardStatus::Draft),
             "permanent" => Ok(CardStatus::Permanent),
