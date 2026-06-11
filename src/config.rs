@@ -85,19 +85,34 @@ fn setup() -> Result<Config, KtermError> {
 }
 
 fn find_workspace_candidates() -> Vec<PathBuf> {
-    let icloud_base = dirs::home_dir()
-        .unwrap_or_default()
-        .join("Library")
-        .join("Mobile Documents");
+    let mut search_dirs = Vec::new();
+
+    // ~/Documents もスキャン対象に追加
+    if let Some(home) = dirs::home_dir() {
+        search_dirs.push(home.join("Documents"));
+        search_dirs.push(home.join("Library").join("Mobile Documents"));
+    }
 
     let mut candidates = Vec::new();
 
-    if let Ok(entries) = fs::read_dir(&icloud_base) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            // cards/とindex.jsonが存在するディレクトリを候補とする
-            if path.join("cards").is_dir() && path.join("index.json").exists() {
-                candidates.push(path);
+    for base in search_dirs {
+        if let Ok(entries) = fs::read_dir(&base) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+
+                // 隠しディレクトリをスキップ
+                if path
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .map(|n| n.starts_with('.'))
+                    .unwrap_or(false)
+                {
+                    continue;
+                }
+
+                if path.join("cards").is_dir() && path.join("index.json").exists() {
+                    candidates.push(path);
+                }
             }
         }
     }
