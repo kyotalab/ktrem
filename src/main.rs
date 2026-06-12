@@ -46,16 +46,18 @@ fn run(
             if key.kind != KeyEventKind::Press {
                 continue;
             }
+            let prev_mode = app.mode.clone(); // Cloneが必要
 
             match app.mode {
                 AppMode::Normal => handle_normal(app, key.code, terminal)?,
                 AppMode::Search => handle_search(app, key.code),
                 AppMode::Wizard => handle_wizard(app, key.code)?,
                 AppMode::TagEdit => handle_tag_edit(app, key.code)?,
+                AppMode::ConfirmDelete => handle_confirm_delete(app, key.code)?,
             }
 
-            // 終了
-            if matches!(app.mode, AppMode::Normal)
+            // 終了（処理前にNormalモードだった場合のみ）
+            if matches!(prev_mode, AppMode::Normal)
                 && matches!(key.code, KeyCode::Char('q') | KeyCode::Esc)
             {
                 break;
@@ -136,6 +138,7 @@ fn handle_normal(
         }
         KeyCode::Char('d') => {
             // 削除確認は今後実装
+            app.open_confirm_delete();
         }
         _ => {}
     }
@@ -305,6 +308,18 @@ fn handle_tag_edit(app: &mut App, key: KeyCode) -> Result<(), Box<dyn std::error
             }
         }
         _ => {}
+    }
+    Ok(())
+}
+
+fn handle_confirm_delete(app: &mut App, key: KeyCode) -> Result<(), Box<dyn std::error::Error>> {
+    match key {
+        KeyCode::Char('y') | KeyCode::Char('Y') => {
+            app.confirm_delete()?;
+        }
+        _ => {
+            app.cancel_delete();
+        }
     }
     Ok(())
 }

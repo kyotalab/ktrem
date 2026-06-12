@@ -25,12 +25,13 @@ pub enum Tab {
     Zettelkasten,
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum AppMode {
-    Normal,  // 通常
-    Search,  // 検索中
-    Wizard,  // 昇格ウィザード
-    TagEdit, // タグ編集
+    Normal,        // 通常
+    Search,        // 検索中
+    Wizard,        // 昇格ウィザード
+    TagEdit,       // タグ編集
+    ConfirmDelete, // ノート削除
 }
 
 pub struct WizardState {
@@ -220,5 +221,47 @@ impl App {
     pub fn close_tag_edit(&mut self) {
         self.tag_edit_state = None;
         self.mode = AppMode::Normal;
+    }
+
+    pub fn open_confirm_delete(&mut self) {
+        self.mode = AppMode::ConfirmDelete;
+    }
+
+    pub fn cancel_delete(&mut self) {
+        self.mode = AppMode::Normal;
+    }
+
+    pub fn confirm_delete(&mut self) -> Result<(), KtermError> {
+        match self.tab {
+            Tab::Scratch => {
+                if let Some(scratch) = self.scratches.get(self.selected_index) {
+                    let timestamp = scratch.timestamp.clone();
+                    store::scratch::delete(&self.config.scratch_dir(), &timestamp)?;
+                }
+            }
+            Tab::Zettelkasten => {
+                if let Some(zettel) = self.zettels.get(self.selected_index) {
+                    let file_name = zettel.file_name.clone();
+                    let id = zettel.id.clone();
+                    store::zettelkasten::delete(&self.config.cards_dir(), &file_name)?;
+                    store::index::delete_entry(&mut self.index, &id)?;
+                    store::index::save(&self.config.index_path(), &self.index)?;
+                }
+            }
+        }
+
+        self.reload()?;
+
+        // 選択位置を調整
+        let len = match self.tab {
+            Tab::Scratch => self.scratches.len(),
+            Tab::Zettelkasten => self.zettels.len(),
+        };
+        if self.selected_index >= len && len > 0 {
+            self.selected_index = len - 1;
+        }
+
+        self.mode = AppMode::Normal;
+        Ok(())
     }
 }

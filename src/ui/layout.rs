@@ -75,6 +75,7 @@ fn render_status(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         AppMode::Search => ("SEARCH", Color::Cyan),
         AppMode::Wizard => ("WIZARD", Color::Yellow),
         AppMode::TagEdit => ("TAG EDIT", Color::Magenta),
+        AppMode::ConfirmDelete => ("DELETE", Color::Red),
     };
 
     let mut spans = vec![
@@ -96,6 +97,13 @@ fn render_status(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
     if app.mode == AppMode::TagEdit && let Some(state) = &app.tag_edit_state {
         spans.push(Span::styled("Tags: ", Style::default().fg(Color::Magenta)));
         spans.push(Span::raw(format!("{}_", state.input)));
+    }
+
+    if app.mode == AppMode::ConfirmDelete {
+        spans.push(Span::styled(
+            "Delete this note? [y/N]",
+            Style::default().fg(Color::White),
+        ));
     }
 
     let status = Paragraph::new(Line::from(spans)).style(Style::default().bg(Color::DarkGray));
