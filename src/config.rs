@@ -84,7 +84,7 @@ fn setup() -> Result<Config, KtermError> {
     Ok(config)
 }
 
-fn find_workspace_candidates() -> Vec<PathBuf> {
+pub fn find_workspace_candidates() -> Vec<PathBuf> {
     let mut search_dirs = Vec::new();
 
     // ~/Documents もスキャン対象に追加
@@ -120,7 +120,7 @@ fn find_workspace_candidates() -> Vec<PathBuf> {
     candidates
 }
 
-fn save(config: &Config) -> Result<(), KtermError> {
+pub fn save(config: &Config) -> Result<(), KtermError> {
     let path = config_path();
     // ディレクトリがなければ作成
     if let Some(parent) = path.parent() {

@@ -5,6 +5,7 @@ use crate::model::index::IndexJson;
 use crate::model::note::{Scratch, Zettel};
 use crate::store;
 use std::collections::{HashMap, HashSet};
+use std::path::PathBuf;
 
 pub struct App {
     pub config: Config,
@@ -19,6 +20,7 @@ pub struct App {
     pub expanded_ids: HashSet<String>,     // 展開中のZettelのID
     pub tag_edit_state: Option<TagEditState>,
     pub backlinks_index: HashMap<String, Vec<String>>, // id -> このidをリンクしているZettelのidリスト
+    pub workspace_switch_state: Option<WorkspaceSwitchState>,
 }
 
 pub enum Tab {
@@ -28,11 +30,12 @@ pub enum Tab {
 
 #[derive(Clone, PartialEq)]
 pub enum AppMode {
-    Normal,        // 通常
-    Search,        // 検索中
-    Wizard,        // 昇格ウィザード
-    TagEdit,       // タグ編集
-    ConfirmDelete, // ノート削除
+    Normal,          // 通常
+    Search,          // 検索中
+    Wizard,          // 昇格ウィザード
+    TagEdit,         // タグ編集
+    ConfirmDelete,   // ノート削除
+    WorkspaceSwitch, // Workspace選択
 }
 
 pub struct WizardState {
@@ -51,6 +54,11 @@ pub enum WizardField {
 
 pub struct TagEditState {
     pub input: String, // カンマ区切りで編集
+}
+
+pub struct WorkspaceSwitchState {
+    pub candidates: Vec<PathBuf>,
+    pub selected: usize,
 }
 
 impl App {
@@ -91,6 +99,7 @@ impl App {
             expanded_ids: HashSet::new(),
             tag_edit_state: None,
             backlinks_index: HashMap::new(),
+            workspace_switch_state: None,
         };
 
         app.rebuild_backlinks_index();
@@ -115,6 +124,12 @@ impl App {
         self.zettels = zettels;
         self.scratches = scratches;
         self.rebuild_backlinks_index();
+        Ok(())
+    }
+
+    pub fn reload_all(&mut self) -> Result<(), KtermError> {
+        self.index = store::index::load(&self.config.index_path())?;
+        self.reload()?;
         Ok(())
     }
 
@@ -295,5 +310,41 @@ impl App {
                     .collect()
             })
             .unwrap_or_default()
+    }
+
+    pub fn open_workspace_switch(&mut self) {
+        let candidates = config::find_workspace_candidates();
+        self.workspace_switch_state = Some(WorkspaceSwitchState {
+            candidates,
+            selected: 0,
+        });
+        self.mode = AppMode::WorkspaceSwitch;
+    }
+
+    pub fn close_workspace_switch(&mut self) {
+        self.workspace_switch_state = None;
+        self.mode = AppMode::Normal;
+    }
+
+    pub fn workspace_switch_move(&mut self, delta: i32) {
+        if let Some(state) = &mut self.workspace_switch_state {
+            let len = state.candidates.len() as i32;
+            let new_selected = (state.selected as i32 + delta).clamp(0, len - 1);
+            state.selected = new_selected as usize;
+        }
+    }
+
+    pub fn confirm_workspace_switch(&mut self) -> Result<(), KtermError> {
+        if let Some(state) = &self.workspace_switch_state {
+            if let Some(workspace) = state.candidates.get(state.selected) {
+                self.config = Config {
+                    workspace: workspace.clone(),
+                };
+                config::save(&self.config)?;
+                self.reload_all()?;
+            }
+        }
+        self.close_workspace_switch();
+        Ok(())
     }
 }

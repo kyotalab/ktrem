@@ -54,6 +54,7 @@ fn run(
                 AppMode::Wizard => handle_wizard(app, key.code)?,
                 AppMode::TagEdit => handle_tag_edit(app, key.code)?,
                 AppMode::ConfirmDelete => handle_confirm_delete(app, key.code)?,
+                AppMode::WorkspaceSwitch => handle_workspace_switch(app, key.code)?,
             }
 
             // 終了（処理前にNormalモードだった場合のみ）
@@ -139,6 +140,9 @@ fn handle_normal(
         KeyCode::Char('d') => {
             // 削除確認は今後実装
             app.open_confirm_delete();
+        }
+        KeyCode::Char('w') => {
+            app.open_workspace_switch();
         }
         _ => {}
     }
@@ -342,5 +346,16 @@ fn open_editor(
     execute!(terminal.backend_mut(), EnterAlternateScreen)?;
     terminal.clear()?;
 
+    Ok(())
+}
+
+fn handle_workspace_switch(app: &mut App, key: KeyCode) -> Result<(), Box<dyn std::error::Error>> {
+    match key {
+        KeyCode::Esc => app.close_workspace_switch(),
+        KeyCode::Char('j') | KeyCode::Down => app.workspace_switch_move(1),
+        KeyCode::Char('k') | KeyCode::Up => app.workspace_switch_move(-1),
+        KeyCode::Enter => app.confirm_workspace_switch()?,
+        _ => {}
+    }
     Ok(())
 }
