@@ -4,7 +4,7 @@ use crate::model::config::Config;
 use crate::model::index::IndexJson;
 use crate::model::note::{Scratch, Zettel};
 use crate::store;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 pub struct App {
     pub config: Config,
@@ -18,6 +18,7 @@ pub struct App {
     pub wizard_state: Option<WizardState>, // ウィザードの状態（Noneは未開時）
     pub expanded_ids: HashSet<String>,     // 展開中のZettelのID
     pub tag_edit_state: Option<TagEditState>,
+    pub backlinks_index: HashMap<String, Vec<String>>, // id -> このidをリンクしているZettelのidリスト
 }
 
 pub enum Tab {
@@ -77,7 +78,7 @@ impl App {
             }
         }
 
-        Ok(App {
+        let mut app = App {
             config,
             tab: Tab::Scratch,
             zettels,
@@ -89,7 +90,12 @@ impl App {
             wizard_state: None,
             expanded_ids: HashSet::new(),
             tag_edit_state: None,
-        })
+            backlinks_index: HashMap::new(),
+        };
+
+        app.rebuild_backlinks_index();
+
+        Ok(app)
     }
 
     /// ファイルを再読み込み
@@ -108,6 +114,7 @@ impl App {
 
         self.zettels = zettels;
         self.scratches = scratches;
+        self.rebuild_backlinks_index();
         Ok(())
     }
 
@@ -263,5 +270,30 @@ impl App {
 
         self.mode = AppMode::Normal;
         Ok(())
+    }
+
+    /// バックリンクインデックスを再構築
+    fn rebuild_backlinks_index(&mut self) {
+        let mut index: HashMap<String, Vec<String>> = HashMap::new();
+
+        for zettel in &self.zettels {
+            for linked_id in zettel.extract_links() {
+                index.entry(linked_id).or_default().push(zettel.id.clone());
+            }
+        }
+
+        self.backlinks_index = index;
+    }
+
+    /// 指定したIDのバックリンク一覧を取得
+    pub fn backlinks(&self, id: &str) -> Vec<&Zettel> {
+        self.backlinks_index
+            .get(id)
+            .map(|ids| {
+                ids.iter()
+                    .filter_map(|linked_from| self.zettels.iter().find(|z| &z.id == linked_from))
+                    .collect()
+            })
+            .unwrap_or_default()
     }
 }
