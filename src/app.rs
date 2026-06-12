@@ -17,6 +17,7 @@ pub struct App {
     pub mode: AppMode,                     // 現在のモード
     pub wizard_state: Option<WizardState>, // ウィザードの状態（Noneは未開時）
     pub expanded_ids: HashSet<String>,     // 展開中のZettelのID
+    pub tag_edit_state: Option<TagEditState>,
 }
 
 pub enum Tab {
@@ -44,6 +45,10 @@ pub enum WizardField {
     Id,
     Title,
     Tags,
+}
+
+pub struct TagEditState {
+    pub input: String, // カンマ区切りで編集
 }
 
 impl App {
@@ -82,6 +87,7 @@ impl App {
             mode: AppMode::Normal,
             wizard_state: None,
             expanded_ids: HashSet::new(),
+            tag_edit_state: None,
         })
     }
 
@@ -163,6 +169,19 @@ impl App {
     /// 昇格ウィザードを閉じる
     pub fn close_wizard(&mut self) {
         self.wizard_state = None;
+        self.mode = AppMode::Normal;
+    }
+
+    pub fn open_tag_edit(&mut self) {
+        if let Some(zettel) = self.zettels.get(self.selected_index) {
+            let input = zettel.tags.join(", ");
+            self.tag_edit_state = Some(TagEditState { input });
+            self.mode = AppMode::TagEdit;
+        }
+    }
+
+    pub fn close_tag_edit(&mut self) {
+        self.tag_edit_state = None;
         self.mode = AppMode::Normal;
     }
 }

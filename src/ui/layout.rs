@@ -92,6 +92,12 @@ fn render_status(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         spans.push(Span::raw(format!("{}_", query)));
     }
 
+    // TagEditモードの場合は入力中のタグを表示
+    if app.mode == AppMode::TagEdit && let Some(state) = &app.tag_edit_state {
+        spans.push(Span::styled("Tags: ", Style::default().fg(Color::Magenta)));
+        spans.push(Span::raw(format!("{}_", state.input)));
+    }
+
     let status = Paragraph::new(Line::from(spans)).style(Style::default().bg(Color::DarkGray));
 
     frame.render_widget(status, area);
