@@ -2,12 +2,18 @@
 name = "kterm"
 version = "0.1.0"
 edition = "2024"
+description = "A terminal TUI for managing a Luhmann-style Zettelkasten, compatible with kasten."
+license = "MIT"
+repository = "https://github.com/kyotalab/kterm"
+readme = "README.md"
+keywords = ["zettelkasten", "tui", "notes", "cli"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 ratatui = "0.30.1"
 crossterm = "0.29.0"
 thiserror = "2.0.18"
-chrono = { version = "0.4.45", features = ["serde"]}
+chrono = { version = "0.4.45", features = ["serde"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
 dirs = "6.0.0"
