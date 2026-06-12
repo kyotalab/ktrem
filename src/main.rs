@@ -55,7 +55,9 @@ fn run(
             }
 
             // 終了
-            if matches!(app.mode, AppMode::Normal) && key.code == KeyCode::Char('q') {
+            if matches!(app.mode, AppMode::Normal)
+                && matches!(key.code, KeyCode::Char('q') | KeyCode::Esc)
+            {
                 break;
             }
         }
@@ -70,15 +72,15 @@ fn handle_normal(
     terminal: &mut ratatui::Terminal<CrosstermBackend<io::Stdout>>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     match key {
-        KeyCode::Char('j') => app.move_down(),
-        KeyCode::Char('k') => app.move_up(),
+        KeyCode::Char('j') | KeyCode::Down => app.move_down(),
+        KeyCode::Char('k') | KeyCode::Up => app.move_up(),
         KeyCode::Tab => app.toggle_tab(),
-        KeyCode::Char('l') => {
+        KeyCode::Char('l') | KeyCode::Right => {
             if matches!(app.tab, Tab::Zettelkasten) {
                 app.toggle_expand();
             }
         }
-        KeyCode::Char('h') => {
+        KeyCode::Char('h') | KeyCode::Left => {
             if matches!(app.tab, Tab::Zettelkasten) {
                 app.toggle_expand();
             }
@@ -125,6 +127,11 @@ fn handle_normal(
             if let Some(p) = path {
                 open_editor(terminal, &p)?;
                 app.reload()?;
+            }
+        }
+        KeyCode::Char('t') => {
+            if matches!(app.tab, Tab::Zettelkasten) {
+                app.open_tag_edit();
             }
         }
         KeyCode::Char('d') => {
@@ -255,9 +262,49 @@ fn handle_wizard(app: &mut App, key: KeyCode) -> Result<(), Box<dyn std::error::
 }
 
 fn handle_tag_edit(app: &mut App, key: KeyCode) -> Result<(), Box<dyn std::error::Error>> {
-    // TODO: タグ編集の実装
-    if key == KeyCode::Esc {
-        app.mode = AppMode::Normal;
+    match key {
+        KeyCode::Esc => app.close_tag_edit(),
+        KeyCode::Enter => {
+            // タグを保存
+            if let Some(state) = &app.tag_edit_state {
+                let tags: Vec<String> = state
+                    .input
+                    .split(',')
+                    .map(|t| t.trim().to_string())
+                    .filter(|t| !t.is_empty())
+                    .collect();
+
+                // Zettelのタグを更新
+                if let Some(zettel) = app.zettels.get_mut(app.selected_index) {
+                    zettel.tags = tags.clone();
+                    let id = zettel.id.clone();
+
+                    // index.jsonを更新
+                    if let Ok(entry) = kterm::store::index::read_entry(&app.index, &id) {
+                        let updated_entry = kterm::model::index::IndexEntry {
+                            status: kterm::model::index::CardStatus::Permanent,
+                            tags,
+                            created: entry.created,
+                            updated: chrono::Utc::now(),
+                        };
+                        kterm::store::index::update_entry(&mut app.index, &id, updated_entry)?;
+                        kterm::store::index::save(&app.config.index_path(), &app.index)?;
+                    }
+                }
+            }
+            app.close_tag_edit();
+        }
+        KeyCode::Char(c) => {
+            if let Some(state) = &mut app.tag_edit_state {
+                state.input.push(c);
+            }
+        }
+        KeyCode::Backspace => {
+            if let Some(state) = &mut app.tag_edit_state {
+                state.input.pop();
+            }
+        }
+        _ => {}
     }
     Ok(())
 }
