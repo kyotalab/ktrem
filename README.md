@@ -38,8 +38,16 @@ kasten/
 
 ## Installation
 
+### Via cargo (recommended)
+
 ```bash
-git clone https://github.com/kyotalob/kterm.git
+cargo install kterm
+```
+
+### From source
+
+```bash
+git clone https://github.com/kyotalab/kterm.git
 cd kterm
 cargo build --release
 ```
