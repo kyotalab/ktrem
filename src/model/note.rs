@@ -19,6 +19,11 @@ impl Zettel {
     pub fn id_from_file_name(file_name: &str) -> String {
         file_name.replace('-', "/")
     }
+
+    /// 指定したidの祖先かどうか判定
+    pub fn is_ancestor_of(&self, other_id: &str) -> bool {
+        other_id != self.id && other_id.starts_with(&self.id)
+    }
 }
 
 #[derive(Clone)]

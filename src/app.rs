@@ -112,18 +112,38 @@ impl App {
 
     /// 上下移動
     pub fn move_up(&mut self) {
-        if self.selected_index > 0 {
-            self.selected_index -= 1;
+        match self.tab {
+            Tab::Scratch => {
+                if self.selected_index > 0 {
+                    self.selected_index -= 1;
+                }
+            }
+            Tab::Zettelkasten => {
+                let visible = self.visible_zettel_indices();
+                if let Some(pos) = visible.iter().position(|&i| i == self.selected_index)
+                    && pos > 0
+                {
+                    self.selected_index = visible[pos - 1];
+                }
+            }
         }
     }
 
     pub fn move_down(&mut self) {
-        let len = match self.tab {
-            Tab::Scratch => self.scratches.len(),
-            Tab::Zettelkasten => self.zettels.len(),
-        };
-        if self.selected_index + 1 < len {
-            self.selected_index += 1;
+        match self.tab {
+            Tab::Scratch => {
+                if self.selected_index + 1 < self.scratches.len() {
+                    self.selected_index += 1;
+                }
+            }
+            Tab::Zettelkasten => {
+                let visible = self.visible_zettel_indices();
+                if let Some(pos) = visible.iter().position(|&i| i == self.selected_index)
+                    && pos + 1 < visible.len()
+                {
+                    self.selected_index = visible[pos + 1];
+                }
+            }
         }
     }
 
@@ -147,6 +167,23 @@ impl App {
                 self.expanded_ids.insert(id);
             }
         }
+    }
+
+    /// 折りたたみを考慮した、表示中のZettelのインデックス一覧
+    fn visible_zettel_indices(&self) -> Vec<usize> {
+        self.zettels
+            .iter()
+            .enumerate()
+            .filter(|(_, zettel)| !self.is_zettel_hidden(zettel))
+            .map(|(i, _)| i)
+            .collect()
+    }
+
+    /// このZettelが折りたたみによって非表示かどうか
+    pub fn is_zettel_hidden(&self, zettel: &Zettel) -> bool {
+        self.zettels
+            .iter()
+            .any(|z| z.is_ancestor_of(&zettel.id) && !self.expanded_ids.contains(&z.id))
     }
 
     /// 検索クエリ更新
