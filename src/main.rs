@@ -1,5 +1,7 @@
 use std::io;
 
+use clap::Parser;
+
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use crossterm::execute;
 use crossterm::terminal::{
@@ -11,7 +13,17 @@ use ratatui::Terminal;
 use kterm::app::{App, AppMode, Tab, WizardField};
 use kterm::ui::layout;
 
+#[derive(Parser)]
+#[command(
+    name = "kterm",
+    version,
+    about = "A terminal TUI for managing a Luhmann-style Zettelkasten"
+)]
+struct Cli {}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let _cli = Cli::parse();
+
     // Appの初期化
     let mut app = App::new()?;
 
