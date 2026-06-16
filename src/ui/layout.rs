@@ -5,7 +5,7 @@ use ratatui::widgets::{Block, Borders, Paragraph, Tabs};
 use ratatui::Frame;
 
 use crate::app::{App, AppMode, Tab};
-use crate::ui::{preview, scratch, wizard, workspace_switch, zettelkasten};
+use crate::ui::{help, preview, scratch, wizard, workspace_switch, zettelkasten};
 
 pub fn render(frame: &mut Frame, app: &App) {
     let area = frame.area();
@@ -45,6 +45,11 @@ pub fn render(frame: &mut Frame, app: &App) {
     // ワークスペース切り替えモードの場合は専用UIを全画面で描画
     if app.mode == AppMode::WorkspaceSwitch {
         workspace_switch::render(frame, app, main_area);
+        return;
+    }
+
+    if app.mode == AppMode::Help {
+        help::render(frame, main_area);
         return;
     }
 
@@ -89,6 +94,7 @@ fn render_status(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         AppMode::TagEdit => ("TAG EDIT", Color::Magenta),
         AppMode::ConfirmDelete => ("DELETE", Color::Red),
         AppMode::WorkspaceSwitch => ("WORKSPACE", Color::Blue),
+        AppMode::Help => ("HELP", Color::White),
     };
 
     let mut spans = vec![

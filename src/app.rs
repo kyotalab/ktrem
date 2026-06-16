@@ -36,6 +36,7 @@ pub enum AppMode {
     TagEdit,         // タグ編集
     ConfirmDelete,   // ノート削除
     WorkspaceSwitch, // Workspace選択
+    Help,            // Help
 }
 
 pub struct WizardState {
@@ -346,5 +347,13 @@ impl App {
         }
         self.close_workspace_switch();
         Ok(())
+    }
+
+    pub fn open_help(&mut self) {
+        self.mode = AppMode::Help;
+    }
+
+    pub fn close_help(&mut self) {
+        self.mode = AppMode::Normal;
     }
 }

@@ -1,3 +1,4 @@
+pub mod help;
 pub mod layout;
 pub mod preview;
 pub mod scratch;

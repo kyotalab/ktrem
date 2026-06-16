@@ -55,6 +55,7 @@ fn run(
                 AppMode::TagEdit => handle_tag_edit(app, key.code)?,
                 AppMode::ConfirmDelete => handle_confirm_delete(app, key.code)?,
                 AppMode::WorkspaceSwitch => handle_workspace_switch(app, key.code)?,
+                AppMode::Help => handle_help(app, key.code),
             }
 
             // 終了（処理前にNormalモードだった場合のみ）
@@ -143,6 +144,9 @@ fn handle_normal(
         }
         KeyCode::Char('w') => {
             app.open_workspace_switch();
+        }
+        KeyCode::Char('?') => {
+            app.open_help();
         }
         _ => {}
     }
@@ -358,4 +362,11 @@ fn handle_workspace_switch(app: &mut App, key: KeyCode) -> Result<(), Box<dyn st
         _ => {}
     }
     Ok(())
+}
+
+fn handle_help(app: &mut App, key: KeyCode) {
+    match key {
+        KeyCode::Esc | KeyCode::Char('?') => app.close_help(),
+        _ => {}
+    }
 }
